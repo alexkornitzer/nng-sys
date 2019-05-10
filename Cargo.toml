@@ -16,7 +16,10 @@ appveyor = { repository = "jake-ruyi/nng-rust", branch = "master", service = "gi
 travis-ci = { repository = "jeikabu/nng-rust", branch = "master" }
 
 [features]
-default = ["build-nng", "nng-stats"]
+default = ["conan-build"]
+
+# Import prebuilt library from conan
+conan-build = []
 
 # Whether or not to build the NNG library
 build-nng = ["cmake"]
