@@ -1,4 +1,46 @@
+
+use std::env;
+use std::path::{PathBuf};
+use std::process::Command;
+use std::fs::File;
+use std::io::prelude::*;
+
+fn conan_build() {
+    let profile = env::var("PROFILE").unwrap();
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
+    let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+    let build_type = if profile == "debug" { "Debug" } else { "Release" };
+    let mut conan_file = manifest_dir.to_path_buf();
+    conan_file.push("conanfile.txt");
+
+    Command::new("conan")
+        .arg("install")
+        .arg("-pr")
+        .arg(format!("{}-{}", &target_os, &target_arch))
+        .arg("-s")
+        .arg(format!("build_type={}", &build_type))
+        .arg("-if")
+        .arg(&out_dir)
+        .arg(&conan_file.to_str().unwrap())
+        .output()
+        .expect("failed to execute conan");
+
+    let mut conan_build_info = out_dir.clone();
+    conan_build_info.push("conanbuildinfo.cargo");
+    let mut file = File::open(&conan_build_info).expect("Error opening conanbuildinfo.cargo");
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).expect("Unable to read conanbuildinfo.cargo");
+    println!("{}", contents);
+}
+
 fn main() {
+    if let Ok(_) = env::var("CARGO_FEATURE_CONAN_BUILD") {
+        conan_build();
+        return;
+    }
+
     link_nng();
     build_bindgen();
 }
