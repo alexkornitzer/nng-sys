@@ -15,8 +15,10 @@ fn conan_build() {
 
         if arch == "aarch64" {
             target_arch = "arm64".to_string();
-        } else {
+        } else if target_os == "ios" {
             target_arch = "armv7".to_string();
+        } else {
+            target_arch = "arm".to_string();
         }
     }
 
