@@ -6,10 +6,22 @@ use std::fs::File;
 use std::io::prelude::*;
 
 fn conan_build() {
+    let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
+    let mut target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+
+    if (target_os == "ios" || target_os == "android") && (target_arch == "arm" || target_arch == "aarch64") {
+        let target_triple = env::var("TARGET").unwrap();
+        let arch = target_triple.split('-').collect::<Vec<_>>().first().unwrap().to_string();
+
+        if arch == "aarch64" {
+            target_arch = "arm64".to_string();
+        } else {
+            target_arch = "armv7".to_string();
+        }
+    }
+
     let profile = env::var("PROFILE").unwrap();
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
-    let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     let build_type = if profile == "debug" { "Debug" } else { "Release" };
     let mut conan_file = manifest_dir.to_path_buf();
